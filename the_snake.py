@@ -24,12 +24,9 @@ SNAKE_COLOR = (0, 255, 0)
 # Скорость движения змейки.
 SPEED = 20
 
-# Настройка игрового окна.
 screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 screen.fill(BOARD_BACKGROUND_COLOR)
 pg.display.set_caption('Змейка')
-
-# Настройка времени.
 clock = pg.time.Clock()
 
 
@@ -96,9 +93,6 @@ class Apple(GameObject):
             randint(0, GRID_WIDTH) * GRID_SIZE,
             randint(0, GRID_HEIGHT) * GRID_SIZE
         )
-    # Не могу понять, как реализовать комментарий:
-    # В конструктор класса передать объект змейки,
-    # чтобы получить координаты змеи, и учесть попадание яблока на змею.
 
 
 class Snake(GameObject):
@@ -156,12 +150,21 @@ class Snake(GameObject):
         head_position = self.get_head_position()
         mod_width = head_position[0] % (SCREEN_WIDTH + GRID_SIZE)
         mod_height = head_position[1] % (SCREEN_HEIGHT + GRID_SIZE)
-        head_1 = mod_width + self.direction[0] * GRID_SIZE
-        head_2 = mod_height + self.direction[1] * GRID_SIZE
-        self.positions.insert(0, (head_1, head_2))
+        new_head = (
+            mod_width + self.direction[0] * GRID_SIZE,
+            mod_height + self.direction[1] * GRID_SIZE
+        )
+        self.positions.insert(0, (new_head))
         self.last = self.positions[-1]
         if len(self.positions) > self.length:
             self.positions.pop()
+        # С last я запуталась. У меня логика такая:
+        # Когда отрисовывается новая голова, последняя ячейка затирается.
+        # И, если не было столкновения с яблоком, то координаты last
+        # удаляются из списка позиций. То есть если змея состояла из 1 клетки,
+        # то она так и будет из одной клетки.
+        # Если яблоко съедено, то последняя ячейка из списка не удалается,
+        # и змея становится длиннее на 1 клетку.
 
     def draw(self):
         """Рисует "голову", затирает "хвост"."""
@@ -208,17 +211,17 @@ def main():
     while True:
         clock.tick(SPEED)
         handle_keys(snake)
-        apple.draw(apple.position)
         snake.move()
-        snake.draw()
         if snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             screen.fill(BOARD_BACKGROUND_COLOR)
-        if snake.positions[0] == apple.position:
+        elif snake.positions[0] == apple.position:
             snake.length += 1
             apple.position = apple.randomize_position()
             while apple.position in snake.positions:
                 apple.position = apple.randomize_position()
+        apple.draw(apple.position)
+        snake.draw()
         pg.display.update()
 
 
