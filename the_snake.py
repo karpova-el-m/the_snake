@@ -130,8 +130,6 @@ class Snake(GameObject):
         """
         super().__init__(SNAKE_COLOR, CENTRAL_POINT)
         self.reset()
-        self.last = None
-        self.direction = RIGHT
 
     def get_head_position(self):
         """Возвращает координаты "головы" змеи"""
@@ -148,11 +146,11 @@ class Snake(GameObject):
         Удаляет последний элемент, если длина змейки не увеличилась.
         """
         head_position = self.get_head_position()
-        mod_width = head_position[0] % (SCREEN_WIDTH + GRID_SIZE)
-        mod_height = head_position[1] % (SCREEN_HEIGHT + GRID_SIZE)
         new_head = (
-            mod_width + self.direction[0] * GRID_SIZE,
-            mod_height + self.direction[1] * GRID_SIZE
+            head_position[0] % (SCREEN_WIDTH + GRID_SIZE)
+            + self.direction[0] * GRID_SIZE,
+            head_position[1] % (SCREEN_HEIGHT + GRID_SIZE)
+            + self.direction[1] * GRID_SIZE
         )
         self.positions.insert(0, (new_head))
         self.last = self.positions[-1]
@@ -176,6 +174,8 @@ class Snake(GameObject):
         """Сброс змейки в начальное состояние."""
         self.length = 1
         self.positions = [self.position]
+        self.last = None
+        self.direction = RIGHT
 
 
 def handle_keys(game_object):
@@ -186,13 +186,13 @@ def handle_keys(game_object):
             pg.quit()
             raise SystemExit
     if keys[pg.K_UP] and game_object.direction != DOWN:
-        return Snake.update_direction(game_object, UP)
+        return game_object.update_direction(UP)
     elif keys[pg.K_DOWN] and game_object.direction != UP:
-        return Snake.update_direction(game_object, DOWN)
+        return game_object.update_direction(DOWN)
     elif keys[pg.K_LEFT] and game_object.direction != RIGHT:
-        return Snake.update_direction(game_object, LEFT)
+        return game_object.update_direction(LEFT)
     elif keys[pg.K_RIGHT] and game_object.direction != LEFT:
-        return Snake.update_direction(game_object, RIGHT)
+        return game_object.update_direction(RIGHT)
 
 
 def main():
@@ -217,7 +217,6 @@ def main():
             screen.fill(BOARD_BACKGROUND_COLOR)
         elif snake.positions[0] == apple.position:
             snake.length += 1
-            apple.position = apple.randomize_position()
             while apple.position in snake.positions:
                 apple.position = apple.randomize_position()
         apple.draw(apple.position)
