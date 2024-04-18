@@ -51,20 +51,11 @@ class GameObject:
         self.body_color = body_color
         self.position = position
 
-    def draw(self, position):
+    def draw(self):
         """Принимает координаты и цвет, рисует клетку"""
-        rect = pg.Rect(position, (GRID_SIZE, GRID_SIZE))
+        rect = pg.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pg.draw.rect(screen, self.body_color, rect)
         pg.draw.rect(screen, BORDER_COLOR, rect, 1)
-        # "Код же ниже идеален был для орисовки одной конкретной клетки.
-        # То есть создаем еще один метод в базовом классе по отрисовке клетки.
-        # По сути контрл ц контрл в сделать."
-        # Тут не очень поняла - в случае яблока мы используем
-        # этот метод 1 в 1 - рисуем одну клетку.
-        # В случае змеи - тоже 1 клетку, сначала центральную позицию,
-        # а потом каждый цикл новую голову. То есть мы не рисуем всю змею
-        # целиком ни в одном из циклов. И отдельно в методе draw
-        # в классе Snake мы прописываем как стирать хвост.
 
 
 class Apple(GameObject):
@@ -90,8 +81,8 @@ class Apple(GameObject):
     def randomize_position(self):
         """Возвращаются случайные координаты клетки"""
         return (
-            randint(0, GRID_WIDTH) * GRID_SIZE,
-            randint(0, GRID_HEIGHT) * GRID_SIZE
+            randint(0, GRID_WIDTH - 1) * GRID_SIZE,
+            randint(0, GRID_HEIGHT - 1) * GRID_SIZE
         )
 
 
@@ -153,22 +144,18 @@ class Snake(GameObject):
             + self.direction[1] * GRID_SIZE
         )
         self.positions.insert(0, (new_head))
-        self.last = self.positions[-1]
         if len(self.positions) > self.length:
-            self.positions.pop()
-        # С last я запуталась. У меня логика такая:
-        # Когда отрисовывается новая голова, последняя ячейка затирается.
-        # И, если не было столкновения с яблоком, то координаты last
-        # удаляются из списка позиций. То есть если змея состояла из 1 клетки,
-        # то она так и будет из одной клетки.
-        # Если яблоко съедено, то последняя ячейка из списка не удалается,
-        # и змея становится длиннее на 1 клетку.
+            self.last = self.positions.pop()
+        elif len(self.positions) == self.length:
+            self.last = None
 
     def draw(self):
         """Рисует "голову", затирает "хвост"."""
-        super().draw(self.get_head_position())
-        last_rect = pg.Rect(self.last, (GRID_SIZE, GRID_SIZE))
-        pg.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
+        self.position = self.get_head_position()
+        super().draw()
+        if self.last:
+            last_rect = pg.Rect(self.last, (GRID_SIZE, GRID_SIZE))
+            pg.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
 
     def reset(self):
         """Сброс змейки в начальное состояние."""
@@ -219,7 +206,7 @@ def main():
             snake.length += 1
             while apple.position in snake.positions:
                 apple.position = apple.randomize_position()
-        apple.draw(apple.position)
+        apple.draw()
         snake.draw()
         pg.display.update()
 
