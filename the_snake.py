@@ -52,6 +52,14 @@ class GameObject:
         self.position = position
 
     def draw(self):
+        """
+        Метод, который предназначен для переопределения
+        в наследуемых классах
+        """
+        raise NotImplementedError(
+            f'Необходимо определить метод в классе {self.__class__.__name__}.')
+
+    def draw_square(self):
         """Принимает координаты и цвет, рисует клетку"""
         rect = pg.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pg.draw.rect(screen, self.body_color, rect)
@@ -77,6 +85,10 @@ class Apple(GameObject):
     def __init__(self):
         """Доступ к родительскому функционалу конструктора"""
         super().__init__(APPLE_COLOR, self.randomize_position())
+
+    def draw(self):
+        """Принимает координаты и цвет, рисует яблоко"""
+        super().draw_square()
 
     def randomize_position(self):
         """Возвращаются случайные координаты клетки"""
@@ -146,13 +158,13 @@ class Snake(GameObject):
         self.positions.insert(0, (new_head))
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
-        elif len(self.positions) == self.length:
+        else:
             self.last = None
 
     def draw(self):
         """Рисует "голову", затирает "хвост"."""
         self.position = self.get_head_position()
-        super().draw()
+        super().draw_square()
         if self.last:
             last_rect = pg.Rect(self.last, (GRID_SIZE, GRID_SIZE))
             pg.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
